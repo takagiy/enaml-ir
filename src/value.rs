@@ -21,7 +21,7 @@ pub enum ValueKind {
 impl Value {
     fn uint(num_bytes: u8, value: BigUint) -> Option<Self> {
         #[allow(clippy::if_same_then_else)]
-        if num_bytes == 0 || num_bytes > 32 {
+        if !(1..=32).contains(&num_bytes) {
             None
         } else if value.bits().div_ceil(8) > num_bytes as u64 {
             None
@@ -35,7 +35,7 @@ impl Value {
 
     fn int(num_bytes: u8, value: BigInt) -> Option<Self> {
         #[allow(clippy::if_same_then_else)]
-        if num_bytes == 0 || num_bytes > 32 {
+        if !(1..=32).contains(&num_bytes) {
             None
         } else if (value.bits() + 1).div_ceil(8) > num_bytes as u64 {
             None
