@@ -200,11 +200,11 @@ impl CompoundType {
         Self::Primitive(Type::String)
     }
 
-    fn to_array(self, num_elements: usize) -> Self {
+    fn into_array(self, num_elements: usize) -> Self {
         Self::Array(num_elements, Box::new(self))
     }
 
-    fn to_vector(self) -> Self {
+    fn into_vector(self) -> Self {
         Self::Vector(Box::new(self))
     }
 
