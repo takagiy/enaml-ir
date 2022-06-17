@@ -20,6 +20,7 @@ pub enum ValueKind {
 
 impl Value {
     fn uint(num_bytes: u8, value: BigUint) -> Option<Self> {
+        #[allow(clippy::if_same_then_else)]
         if num_bytes == 0 || num_bytes > 32 {
             None
         } else if value.bits().div_ceil(8) > num_bytes as u64 {
@@ -33,6 +34,7 @@ impl Value {
     }
 
     fn int(num_bytes: u8, value: BigInt) -> Option<Self> {
+        #[allow(clippy::if_same_then_else)]
         if num_bytes == 0 || num_bytes > 32 {
             None
         } else if (value.bits() + 1).div_ceil(8) > num_bytes as u64 {
@@ -60,7 +62,8 @@ impl Value {
     }
 
     fn ufixed(num_bytes: u8, point_position: u8, value: BigUint) -> Option<Self> {
-        if num_bytes < 1 || num_bytes > 32 {
+        #[allow(clippy::if_same_then_else)]
+        if !(1..=32).contains(&num_bytes) {
             None
         } else if point_position == 0 || point_position > 80 {
             None
@@ -75,7 +78,8 @@ impl Value {
     }
 
     fn fixed(num_bytes: u8, point_position: u8, value: BigInt) -> Option<Self> {
-        if num_bytes < 1 || num_bytes > 32 {
+        #[allow(clippy::if_same_then_else)]
+        if !(1..=32).contains(&num_bytes) {
             None
         } else if point_position == 0 || point_position > 80 {
             None
