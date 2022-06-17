@@ -19,7 +19,7 @@ pub enum ValueKind {
 }
 
 impl Value {
-    fn uint(num_bytes: u8, value: BigUint) -> Option<Self> {
+    pub fn uint(num_bytes: u8, value: BigUint) -> Option<Self> {
         #[allow(clippy::if_same_then_else)]
         if !(1..=32).contains(&num_bytes) {
             None
@@ -33,7 +33,7 @@ impl Value {
         }
     }
 
-    fn int(num_bytes: u8, value: BigInt) -> Option<Self> {
+    pub fn int(num_bytes: u8, value: BigInt) -> Option<Self> {
         #[allow(clippy::if_same_then_else)]
         if !(1..=32).contains(&num_bytes) {
             None
@@ -47,21 +47,21 @@ impl Value {
         }
     }
 
-    fn address(value: [u8; 20]) -> Self {
+    pub fn address(value: [u8; 20]) -> Self {
         Self {
             ty: CompoundType::address(),
             value: ValueKind::Address(value),
         }
     }
 
-    fn bool(value: bool) -> Self {
+    pub fn bool(value: bool) -> Self {
         Self {
             ty: CompoundType::bool(),
             value: ValueKind::Bool(value),
         }
     }
 
-    fn ufixed(num_bytes: u8, point_position: u8, value: BigUint) -> Option<Self> {
+    pub fn ufixed(num_bytes: u8, point_position: u8, value: BigUint) -> Option<Self> {
         #[allow(clippy::if_same_then_else)]
         if !(1..=32).contains(&num_bytes) {
             None
@@ -77,7 +77,7 @@ impl Value {
         }
     }
 
-    fn fixed(num_bytes: u8, point_position: u8, value: BigInt) -> Option<Self> {
+    pub fn fixed(num_bytes: u8, point_position: u8, value: BigInt) -> Option<Self> {
         #[allow(clippy::if_same_then_else)]
         if !(1..=32).contains(&num_bytes) {
             None
@@ -93,28 +93,28 @@ impl Value {
         }
     }
 
-    fn bytes(num_bytes: u8, value: Vec<u8>) -> Self {
+    pub fn bytes(num_bytes: u8, value: Vec<u8>) -> Self {
         Self {
             ty: CompoundType::bytes(num_bytes),
             value: ValueKind::Bytes(value),
         }
     }
 
-    fn byte_vector(value: Vec<u8>) -> Self {
+    pub fn byte_vector(value: Vec<u8>) -> Self {
         Self {
             ty: CompoundType::byte_vector(),
             value: ValueKind::ByteVector(value),
         }
     }
 
-    fn function(address: [u8; 20], function_selector: [u8; 4]) -> Self {
+    pub fn function(address: [u8; 20], function_selector: [u8; 4]) -> Self {
         Self {
             ty: CompoundType::function(),
             value: ValueKind::Function(address, function_selector),
         }
     }
 
-    fn string(value: String) -> Self {
+    pub fn string(value: String) -> Self {
         Self {
             ty: CompoundType::string(),
             value: ValueKind::String(value),
@@ -160,55 +160,55 @@ pub enum CompoundType {
 }
 
 impl CompoundType {
-    fn uint(num_bytes: u8) -> Self {
+    pub fn uint(num_bytes: u8) -> Self {
         Self::Primitive(Type::UInt(num_bytes))
     }
 
-    fn int(num_bytes: u8) -> Self {
+    pub fn int(num_bytes: u8) -> Self {
         Self::Primitive(Type::Int(num_bytes))
     }
 
-    fn address() -> Self {
+    pub fn address() -> Self {
         Self::Primitive(Type::Address)
     }
 
-    fn bool() -> Self {
+    pub fn bool() -> Self {
         Self::Primitive(Type::Bool)
     }
 
-    fn ufixed(num_bytes: u8, point_position: u8) -> Self {
+    pub fn ufixed(num_bytes: u8, point_position: u8) -> Self {
         Self::Primitive(Type::UFixed(num_bytes, point_position))
     }
 
-    fn fixed(num_bytes: u8, point_position: u8) -> Self {
+    pub fn fixed(num_bytes: u8, point_position: u8) -> Self {
         Self::Primitive(Type::Fixed(num_bytes, point_position))
     }
 
-    fn bytes(num_bytes: u8) -> Self {
+    pub fn bytes(num_bytes: u8) -> Self {
         Self::Primitive(Type::Bytes(num_bytes))
     }
 
-    fn byte_vector() -> Self {
+    pub fn byte_vector() -> Self {
         Self::Primitive(Type::ByteVector)
     }
 
-    fn function() -> Self {
+    pub fn function() -> Self {
         Self::Primitive(Type::Function)
     }
 
-    fn string() -> Self {
+    pub fn string() -> Self {
         Self::Primitive(Type::String)
     }
 
-    fn into_array(self, num_elements: usize) -> Self {
+    pub fn into_array(self, num_elements: usize) -> Self {
         Self::Array(num_elements, Box::new(self))
     }
 
-    fn into_vector(self) -> Self {
+    pub fn into_vector(self) -> Self {
         Self::Vector(Box::new(self))
     }
 
-    fn tuple(elements: Vec<Self>) -> Self {
+    pub fn tuple(elements: Vec<Self>) -> Self {
         Self::Tuple(elements)
     }
 }
