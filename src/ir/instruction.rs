@@ -1,6 +1,6 @@
 use paste::paste;
 
-pub type VarId = usize;
+use super::var_id::VarId;
 
 #[non_exhaustive]
 pub struct Instruction {
