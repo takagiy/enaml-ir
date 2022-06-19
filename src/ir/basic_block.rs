@@ -1,5 +1,5 @@
 use super::instruction::Instruction;
 
-struct BasicBlock {
-    instructions: Vec<Instruction>,
+pub struct BasicBlock {
+    pub instructions: Vec<Instruction>,
 }
