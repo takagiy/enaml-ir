@@ -1,4 +1,5 @@
 #![feature(int_roundings)]
+pub mod ir;
 pub mod value;
 
 #[cfg(test)]
