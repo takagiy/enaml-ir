@@ -23,30 +23,34 @@ impl<T: TypeTag> TypedVar<T> {
     pub fn new(id: VarId) -> Self {
         Self(Var { id, ty: T::TYPE }, PhantomData)
     }
+
+    pub fn into_unknown(self) -> Var {
+        self.0
+    }
 }
 
 impl BoolVar {
-    pub fn as_uint<const SIZE: u8>(self) -> UIntVar<SIZE>
+    pub fn into_uint<const SIZE: u8>(self) -> UIntVar<SIZE>
     where
         Const<SIZE>: GreaterEqual<1>,
     {
         UIntVar::new(self.0.id)
     }
 
-    pub fn as_pointer(self) -> PointerVar {
+    pub fn into_pointer(self) -> PointerVar {
         PointerVar::new(self.0.id)
     }
 }
 
 impl<const SIZE: u8> UIntVar<SIZE> {
-    pub fn as_uint<const TARGET_SIZE: u8>(self) -> UIntVar<TARGET_SIZE>
+    pub fn into_uint<const TARGET_SIZE: u8>(self) -> UIntVar<TARGET_SIZE>
     where
         Const<TARGET_SIZE>: GreaterEqual<SIZE>,
     {
         UIntVar::new(self.0.id)
     }
 
-    pub fn as_pointer(self) -> PointerVar {
+    pub fn into_pointer(self) -> PointerVar {
         PointerVar::new(self.0.id)
     }
 }
