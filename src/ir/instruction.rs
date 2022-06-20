@@ -1,6 +1,6 @@
 use paste::paste;
 
-use super::var_id::VarId;
+use super::variable::VarId;
 
 #[non_exhaustive]
 pub struct Instruction {

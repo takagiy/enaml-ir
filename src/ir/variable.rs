@@ -19,21 +19,35 @@ pub type IntVar<const SIZE: u8> = TypedVar<IntType<SIZE>>;
 
 pub type PointerVar = TypedVar<PointerType>;
 
+impl<T: TypeTag> TypedVar<T> {
+    pub fn new(id: VarId) -> Self {
+        Self(Var { id, ty: T::TYPE }, PhantomData)
+    }
+}
+
 impl BoolVar {
-    pub fn into_uint<const SIZE: u8>(self) -> UIntVar<SIZE>
+    pub fn as_uint<const SIZE: u8>(self) -> UIntVar<SIZE>
     where
         Const<SIZE>: GreaterEqual<1>,
     {
-        TypedVar(self.0, PhantomData)
+        UIntVar::new(self.0.id)
+    }
+
+    pub fn as_pointer(self) -> PointerVar {
+        PointerVar::new(self.0.id)
     }
 }
 
 impl<const SIZE: u8> UIntVar<SIZE> {
-    pub fn into_uint<const TARGET_SIZE: u8>(self) -> UIntVar<TARGET_SIZE>
+    pub fn as_uint<const TARGET_SIZE: u8>(self) -> UIntVar<TARGET_SIZE>
     where
         Const<TARGET_SIZE>: GreaterEqual<SIZE>,
     {
-        TypedVar(self.0, PhantomData)
+        UIntVar::new(self.0.id)
+    }
+
+    pub fn as_pointer(self) -> PointerVar {
+        PointerVar::new(self.0.id)
     }
 }
 
@@ -44,7 +58,9 @@ pub enum Type {
     Pointer,
 }
 
-pub trait TypeTag {}
+pub trait TypeTag {
+    const TYPE: Type;
+}
 
 #[non_exhaustive]
 pub struct BoolType;
@@ -58,7 +74,15 @@ pub struct IntType<const SIZE: u8>;
 #[non_exhaustive]
 pub struct PointerType;
 
-impl TypeTag for BoolType {}
-impl<const SIZE: u8> TypeTag for UIntType<SIZE> {}
-impl<const SIZE: u8> TypeTag for IntType<SIZE> {}
-impl TypeTag for PointerType {}
+impl TypeTag for BoolType {
+    const TYPE: Type = Type::Bool;
+}
+impl<const SIZE: u8> TypeTag for UIntType<SIZE> {
+    const TYPE: Type = Type::UInt(SIZE);
+}
+impl<const SIZE: u8> TypeTag for IntType<SIZE> {
+    const TYPE: Type = Type::Int(SIZE);
+}
+impl TypeTag for PointerType {
+    const TYPE: Type = Type::Pointer;
+}
