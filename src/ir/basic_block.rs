@@ -1,7 +1,7 @@
 use super::{
     builder::context::Context,
     instruction::Instruction,
-    variable::{AnyVar, BothIntAnyVar, PointerVar, UIntVar, UIntVar},
+    variable::{AnyVar, BothIntAnyVar, PointerVar, UIntVar},
 };
 
 pub struct BasicBlock {
