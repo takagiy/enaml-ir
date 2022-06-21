@@ -26,13 +26,13 @@ impl Default for BasicBlock {
     }
 }
 
-pub struct BasicBlockBuilder<'ctx> {
-    context: &'ctx Context,
-    basic_block: &'ctx mut BasicBlock,
+pub struct BasicBlockBuilder<'bb> {
+    context: &'bb Context,
+    basic_block: &'bb mut BasicBlock,
 }
 
-impl<'ctx> BasicBlockBuilder<'ctx> {
-    pub(crate) fn new(context: &'ctx Context, basic_block: &'ctx mut BasicBlock) -> Self {
+impl<'bb> BasicBlockBuilder<'bb> {
+    pub(crate) fn new(context: &'bb Context, basic_block: &'bb mut BasicBlock) -> Self {
         Self {
             context,
             basic_block,

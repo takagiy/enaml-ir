@@ -17,10 +17,13 @@ impl Context {
         }
     }
 
-    pub fn get_builder<'ctx>(
+    pub fn get_builder<'ctx, 'bb>(
         &'ctx self,
-        basic_block: &'ctx mut BasicBlock,
-    ) -> BasicBlockBuilder<'ctx> {
+        basic_block: &'bb mut BasicBlock,
+    ) -> BasicBlockBuilder<'bb>
+    where
+        'ctx: 'bb,
+    {
         BasicBlockBuilder::new(self, basic_block)
     }
 
