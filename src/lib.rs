@@ -1,6 +1,7 @@
 #![feature(int_roundings)]
 pub mod abi;
 pub mod ir;
+pub mod util;
 
 #[cfg(test)]
 mod tests {
