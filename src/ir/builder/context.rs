@@ -1,6 +1,9 @@
 use std::cell::Cell;
 
-use crate::ir::variable::VarId;
+use crate::ir::{
+    basic_block::{BasicBlock, BasicBlockBuilder},
+    variable::VarId,
+};
 
 #[non_exhaustive]
 pub struct Context {
@@ -12,6 +15,13 @@ impl Context {
         Self {
             next_id: Cell::new(0),
         }
+    }
+
+    pub fn get_builder<'ctx>(
+        &'ctx self,
+        basic_block: &'ctx mut BasicBlock,
+    ) -> BasicBlockBuilder<'ctx> {
+        BasicBlockBuilder::new(self, basic_block)
     }
 
     pub fn next_id(&self) -> usize {
