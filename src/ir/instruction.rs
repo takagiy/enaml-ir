@@ -37,8 +37,8 @@ macro_rules! inst_impl {
 }
 
 macro_rules! instructions {
-    ($($name:ident($($arg:ident),*) $(nodest)?;)*) => {
-        $(inst_impl!($name($($arg),*));)*
+    ($($name:ident($($arg:ident),*) $($dest_spec:ident)?;)*) => {
+        $(inst_impl!($name($($arg),*) $($dest_spec)?);)*
     };
 }
 

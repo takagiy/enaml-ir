@@ -90,3 +90,43 @@ impl<const SIZE: u8> TypeTag for IntType<SIZE> {
 impl TypeTag for PointerType {
     const TYPE: Type = Type::Pointer;
 }
+
+pub trait AnyVar {
+    fn new(id: VarId) -> Self;
+
+    fn into_unknown(self) -> Var;
+
+    fn as_unknown(&self) -> &Var;
+
+    fn id(&self) -> VarId {
+        self.as_unknown().id
+    }
+}
+
+impl<T: TypeTag> AnyVar for TypedVar<T> {
+    fn new(id: VarId) -> Self {
+        Self::new(id)
+    }
+
+    fn into_unknown(self) -> Var {
+        self.into_unknown()
+    }
+
+    fn as_unknown(&self) -> &Var {
+        &self.0
+    }
+}
+
+pub trait UIntAnyVar: AnyVar {}
+
+impl<const SIZE: u8> UIntAnyVar for UIntVar<SIZE> {}
+
+pub trait IntAnyVar: AnyVar {}
+
+impl<const SIZE: u8> IntAnyVar for IntVar<SIZE> {}
+
+pub trait BothIntAnyVar: AnyVar {}
+
+impl<const SIZE: u8> BothIntAnyVar for UIntVar<SIZE> {}
+
+impl<const SIZE: u8> BothIntAnyVar for IntVar<SIZE> {}
