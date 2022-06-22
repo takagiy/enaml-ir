@@ -1,15 +1,19 @@
+use id_arena::Id;
 use std::marker::PhantomData;
 
+use super::instruction::Instruction;
 use crate::util::compile_time::{Const, GreaterEqual};
 
-pub type VarId = usize;
+pub type VarId = Id<Var>;
 
 pub struct Var {
-    pub id: VarId,
+    pub source: Instruction,
     pub ty: Type,
 }
 
-pub struct TypedVar<T: TypeTag>(Var, PhantomData<T>);
+pub struct TypedVar<T: TypeTag>(VarId, PhantomData<T>);
+
+pub type NoneVar = TypedVar<NoneType>;
 
 pub type BoolVar = TypedVar<BoolType>;
 
@@ -21,10 +25,10 @@ pub type PointerVar = TypedVar<PointerType>;
 
 impl<T: TypeTag> TypedVar<T> {
     pub fn new(id: VarId) -> Self {
-        Self(Var { id, ty: T::TYPE }, PhantomData)
+        Self(id, PhantomData)
     }
 
-    pub fn into_unknown(self) -> Var {
+    pub fn into_unknown(self) -> VarId {
         self.0
     }
 }
@@ -34,11 +38,11 @@ impl BoolVar {
     where
         Const<SIZE>: GreaterEqual<1>,
     {
-        UIntVar::new(self.0.id)
+        UIntVar::new(self.0)
     }
 
     pub fn into_pointer(self) -> PointerVar {
-        PointerVar::new(self.0.id)
+        PointerVar::new(self.0)
     }
 }
 
@@ -47,15 +51,16 @@ impl<const SIZE: u8> UIntVar<SIZE> {
     where
         Const<TARGET_SIZE>: GreaterEqual<SIZE>,
     {
-        UIntVar::new(self.0.id)
+        UIntVar::new(self.0)
     }
 
     pub fn into_pointer(self) -> PointerVar {
-        PointerVar::new(self.0.id)
+        PointerVar::new(self.0)
     }
 }
 
 pub enum Type {
+    None,
     Bool,
     UInt(u8),
     Int(u8),
@@ -65,6 +70,9 @@ pub enum Type {
 pub trait TypeTag {
     const TYPE: Type;
 }
+
+#[non_exhaustive]
+pub struct NoneType;
 
 #[non_exhaustive]
 pub struct BoolType;
@@ -77,6 +85,10 @@ pub struct IntType<const SIZE: u8>;
 
 #[non_exhaustive]
 pub struct PointerType;
+
+impl TypeTag for NoneType {
+    const TYPE: Type = Type::None;
+}
 
 impl TypeTag for BoolType {
     const TYPE: Type = Type::Bool;
@@ -91,29 +103,23 @@ impl TypeTag for PointerType {
     const TYPE: Type = Type::Pointer;
 }
 
-pub trait AnyVar {
+impl<T: TypeTag> From<TypedVar<T>> for VarId {
+    fn from(typed: TypedVar<T>) -> Self {
+        typed.0
+    }
+}
+
+pub trait AnyVar: Into<VarId> {
     fn new(id: VarId) -> Self;
 
-    fn into_unknown(self) -> Var;
-
-    fn as_unknown(&self) -> &Var;
-
-    fn id(&self) -> VarId {
-        self.as_unknown().id
+    fn into_unknown(self) -> VarId {
+        self.into()
     }
 }
 
 impl<T: TypeTag> AnyVar for TypedVar<T> {
     fn new(id: VarId) -> Self {
         Self::new(id)
-    }
-
-    fn into_unknown(self) -> Var {
-        self.into_unknown()
-    }
-
-    fn as_unknown(&self) -> &Var {
-        &self.0
     }
 }
 

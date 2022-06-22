@@ -1,22 +1,34 @@
+use id_arena::Arena;
+
 use super::{
-    builder::context::Context,
     instruction::Instruction,
-    variable::{AnyVar, BothIntAnyVar, PointerVar, UIntVar},
+    variable::{AnyVar, BothIntAnyVar, PointerVar, Type, UIntVar, Var},
 };
 
 pub struct BasicBlock {
-    pub instructions: Vec<Instruction>,
+    pub instructions: Arena<Var>,
 }
 
 impl BasicBlock {
     pub fn new() -> Self {
         Self {
-            instructions: Vec::new(),
+            instructions: Arena::new(),
         }
     }
 
-    fn push(&mut self, instruction: Instruction) {
-        self.instructions.push(instruction);
+    fn push_none(&mut self, instruction: Instruction) {
+        self.instructions.alloc(Var {
+            source: instruction,
+            ty: Type::None,
+        });
+    }
+
+    fn push<T: AnyVar>(&mut self, instruction: Instruction) -> T {
+        let id = self.instructions.alloc(Var {
+            source: instruction,
+            ty: Type::Pointer,
+        });
+        T::new(id)
     }
 }
 
@@ -27,44 +39,32 @@ impl Default for BasicBlock {
 }
 
 pub struct BasicBlockBuilder<'bb> {
-    context: &'bb Context,
     basic_block: &'bb mut BasicBlock,
 }
 
 impl<'bb> BasicBlockBuilder<'bb> {
-    pub(crate) fn new(context: &'bb Context, basic_block: &'bb mut BasicBlock) -> Self {
-        Self {
-            context,
-            basic_block,
-        }
+    pub(crate) fn new(basic_block: &'bb mut BasicBlock) -> Self {
+        Self { basic_block }
     }
 
     pub fn build_add<T: BothIntAnyVar>(&mut self, a: T, b: T) -> T {
-        let id = self.context.next_id();
-        self.basic_block.push(Instruction::add(id, a.id(), b.id()));
-        T::new(id)
+        self.basic_block.push(Instruction::add(a.into(), b.into()))
     }
 
     pub fn build_mul<T: BothIntAnyVar>(&mut self, a: T, b: T) -> T {
-        let id = self.context.next_id();
-        self.basic_block.push(Instruction::mul(id, a.id(), b.id()));
-        T::new(id)
+        self.basic_block.push(Instruction::mul(a.into(), b.into()))
     }
 
     pub fn build_sub<T: BothIntAnyVar>(&mut self, a: T, b: T) -> T {
-        let id = self.context.next_id();
-        self.basic_block.push(Instruction::sub(id, a.id(), b.id()));
-        T::new(id)
+        self.basic_block.push(Instruction::sub(a.into(), b.into()))
     }
 
     pub fn build_div<T: BothIntAnyVar>(&mut self, a: T, b: T) -> T {
-        let id = self.context.next_id();
-        self.basic_block.push(Instruction::div(id, a.id(), b.id()));
-        T::new(id)
+        self.basic_block.push(Instruction::div(a.into(), b.into()))
     }
 
     pub fn build_finish(&mut self, offset: PointerVar, length: UIntVar<32>) {
         self.basic_block
-            .push(Instruction::finish(offset.id(), length.id()));
+            .push_none(Instruction::finish(offset.into(), length.into()));
     }
 }

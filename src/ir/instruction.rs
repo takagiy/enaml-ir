@@ -5,7 +5,6 @@ use super::variable::VarId;
 #[non_exhaustive]
 pub struct Instruction {
     pub opcode: Opcode,
-    pub destination: Option<VarId>,
     pub args: Vec<VarId>,
 }
 
@@ -13,10 +12,9 @@ macro_rules! inst_impl {
     ($name:ident($($arg:ident),*)) => {
         paste! {
             #[allow(clippy::too_many_arguments)]
-            pub fn $name(destination: VarId, $($arg: VarId),*) -> Self {
+            pub fn $name($($arg: VarId),*) -> Self {
                 Self {
                     opcode: Opcode::[<$name:camel>],
-                    destination: Some(destination),
                     args: vec![$($arg),*],
                 }
             }
@@ -28,7 +26,6 @@ macro_rules! inst_impl {
             pub fn $name($($arg: VarId),*) -> Self {
                 Self {
                     opcode: Opcode::[<$name:camel>],
-                    destination: None,
                     args: vec![$($arg),*],
                 }
             }
