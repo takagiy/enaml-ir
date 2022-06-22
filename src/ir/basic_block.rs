@@ -1,69 +1,71 @@
+use typed_arena::Arena;
+
 use super::{
     builder::context::Context,
     instruction::Instruction,
-    variable::{AnyVar, BothIntAnyVar, PointerVar, UIntVar},
+    variable::{AnyVar, BothIntAnyVar, PointerVar, UIntVar, VarIdExt},
 };
 
-pub struct BasicBlock {
-    pub instructions: Vec<Instruction>,
+pub struct BasicBlock<'ctx> {
+    pub instructions: Arena<Instruction<'ctx>>,
 }
 
-impl BasicBlock {
+impl<'ctx> BasicBlock<'ctx> {
     pub fn new() -> Self {
         Self {
-            instructions: Vec::new(),
+            instructions: Arena::new(),
         }
     }
 
-    fn push(&mut self, instruction: Instruction) {
-        self.instructions.push(instruction);
+    fn push(&mut self, instruction: Instruction<'ctx>) -> &mut Instruction<'ctx> {
+        self.instructions.alloc(instruction)
     }
 }
 
-impl Default for BasicBlock {
+impl<'ctx> Default for BasicBlock<'ctx> {
     fn default() -> Self {
         Self::new()
     }
 }
 
-pub struct BasicBlockBuilder<'bb> {
-    context: &'bb Context,
-    basic_block: &'bb mut BasicBlock,
+pub struct BasicBlockBuilder<'ctx> {
+    context: &'ctx Context,
+    basic_block: &'ctx mut BasicBlock<'ctx>,
 }
 
-impl<'bb> BasicBlockBuilder<'bb> {
-    pub(crate) fn new(context: &'bb Context, basic_block: &'bb mut BasicBlock) -> Self {
+impl<'ctx> BasicBlockBuilder<'ctx> {
+    pub(crate) fn new(context: &'ctx Context, basic_block: &'ctx mut BasicBlock<'ctx>) -> Self {
         Self {
             context,
             basic_block,
         }
     }
 
-    pub fn build_add<T: BothIntAnyVar>(&mut self, a: T, b: T) -> T {
-        let id = self.context.next_id();
-        self.basic_block.push(Instruction::add(id, a.id(), b.id()));
-        T::new(id)
+    pub fn build_add<'a, T: BothIntAnyVar<'ctx>>(&'ctx mut self, a: T, b: T) -> T {
+        self.basic_block
+            .push(Instruction::add(a.id(), b.id()))
+            .assume_unchecked()
     }
 
-    pub fn build_mul<T: BothIntAnyVar>(&mut self, a: T, b: T) -> T {
-        let id = self.context.next_id();
-        self.basic_block.push(Instruction::mul(id, a.id(), b.id()));
-        T::new(id)
+    pub fn build_mul<T: BothIntAnyVar<'ctx>>(&'ctx mut self, a: T, b: T) -> T {
+        self.basic_block
+            .push(Instruction::mul(a.id(), b.id()))
+            .assume_unchecked()
     }
 
-    pub fn build_sub<T: BothIntAnyVar>(&mut self, a: T, b: T) -> T {
-        let id = self.context.next_id();
-        self.basic_block.push(Instruction::sub(id, a.id(), b.id()));
-        T::new(id)
+    pub fn build_sub<T: BothIntAnyVar<'ctx>>(&'ctx mut self, a: T, b: T) -> T {
+        self.basic_block
+            .push(Instruction::sub(a.id(), b.id()))
+            .assume_unchecked()
     }
 
-    pub fn build_div<T: BothIntAnyVar>(&mut self, a: T, b: T) -> T {
-        let id = self.context.next_id();
-        self.basic_block.push(Instruction::div(id, a.id(), b.id()));
-        T::new(id)
+    pub fn build_div<T: BothIntAnyVar<'ctx>>(&'ctx mut self, a: T, b: T) -> T {
+        self.basic_block
+            .push(Instruction::div(a.id(), b.id()))
+            .assume_unchecked()
     }
 
-    pub fn build_finish(&mut self, offset: PointerVar, length: UIntVar<32>) {
+    pub fn build_finish(&'ctx mut self, offset: PointerVar<'ctx>, length: UIntVar<'ctx, 32>) {
         self.basic_block
             .push(Instruction::finish(offset.id(), length.id()));
     }

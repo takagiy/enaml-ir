@@ -1,34 +1,18 @@
-use std::cell::Cell;
-
-use crate::ir::{
-    basic_block::{BasicBlock, BasicBlockBuilder},
-    variable::VarId,
-};
+use crate::ir::basic_block::{BasicBlock, BasicBlockBuilder};
 
 #[non_exhaustive]
-pub struct Context {
-    next_id: Cell<VarId>,
-}
+pub struct Context {}
 
 impl Context {
     pub fn new() -> Self {
-        Self {
-            next_id: Cell::new(0),
-        }
+        Self {}
     }
 
-    pub fn get_builder<'ctx, 'bb>(
+    pub fn get_builder<'ctx>(
         &'ctx self,
-        basic_block: &'bb mut BasicBlock,
-    ) -> BasicBlockBuilder<'bb>
-    where
-        'ctx: 'bb,
-    {
+        basic_block: &'ctx mut BasicBlock<'ctx>,
+    ) -> BasicBlockBuilder<'ctx> {
         BasicBlockBuilder::new(self, basic_block)
-    }
-
-    pub fn next_id(&self) -> usize {
-        self.next_id.replace(self.next_id.get() + 1)
     }
 }
 

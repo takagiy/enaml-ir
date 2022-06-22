@@ -3,20 +3,18 @@ use paste::paste;
 use super::variable::VarId;
 
 #[non_exhaustive]
-pub struct Instruction {
+pub struct Instruction<'ctx> {
     pub opcode: Opcode,
-    pub destination: Option<VarId>,
-    pub args: Vec<VarId>,
+    pub args: Vec<VarId<'ctx>>,
 }
 
 macro_rules! inst_impl {
     ($name:ident($($arg:ident),*)) => {
         paste! {
             #[allow(clippy::too_many_arguments)]
-            pub fn $name(destination: VarId, $($arg: VarId),*) -> Self {
+            pub fn $name($($arg: VarId<'ctx>),*) -> Self {
                 Self {
                     opcode: Opcode::[<$name:camel>],
-                    destination: Some(destination),
                     args: vec![$($arg),*],
                 }
             }
@@ -25,10 +23,9 @@ macro_rules! inst_impl {
     ($name:ident($($arg:ident),*) nodest) => {
         paste! {
             #[allow(clippy::too_many_arguments)]
-            pub fn $name($($arg: VarId),*) -> Self {
+            pub fn $name($($arg: VarId<'ctx>),*) -> Self {
                 Self {
                     opcode: Opcode::[<$name:camel>],
-                    destination: None,
                     args: vec![$($arg),*],
                 }
             }
@@ -42,7 +39,7 @@ macro_rules! instructions {
     };
 }
 
-impl Instruction {
+impl<'ctx> Instruction<'ctx> {
     instructions! {
         add(a, b);
         mul(a, b);

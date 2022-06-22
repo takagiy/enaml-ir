@@ -2,55 +2,67 @@ use std::marker::PhantomData;
 
 use crate::util::compile_time::{Const, GreaterEqual};
 
-pub type VarId = usize;
+use super::instruction::Instruction;
 
-pub struct Var {
-    pub id: VarId,
+pub type VarId<'ctx> = &'ctx Instruction<'ctx>;
+
+pub struct Var<'ctx> {
+    pub id: VarId<'ctx>,
     pub ty: Type,
 }
 
-pub struct TypedVar<T: TypeTag>(Var, PhantomData<T>);
+pub trait VarIdExt<'ctx> {
+    fn assume_unchecked<T: AnyVar<'ctx>>(self) -> T;
+}
 
-pub type BoolVar = TypedVar<BoolType>;
+impl<'ctx> VarIdExt<'ctx> for VarId<'ctx> {
+    fn assume_unchecked<T: AnyVar<'ctx>>(self) -> T {
+        T::new(self)
+    }
+}
 
-pub type UIntVar<const SIZE: u8> = TypedVar<UIntType<SIZE>>;
+pub struct TypedVar<'ctx, T: TypeTag>(Var<'ctx>, PhantomData<T>);
 
-pub type IntVar<const SIZE: u8> = TypedVar<IntType<SIZE>>;
+pub type BoolVar<'ctx> = TypedVar<'ctx, BoolType>;
 
-pub type PointerVar = TypedVar<PointerType>;
+pub type UIntVar<'ctx, const SIZE: u8> = TypedVar<'ctx, UIntType<SIZE>>;
 
-impl<T: TypeTag> TypedVar<T> {
-    pub fn new(id: VarId) -> Self {
+pub type IntVar<'ctx, const SIZE: u8> = TypedVar<'ctx, IntType<SIZE>>;
+
+pub type PointerVar<'ctx> = TypedVar<'ctx, PointerType>;
+
+impl<'ctx, T: TypeTag> TypedVar<'ctx, T> {
+    pub fn new(id: VarId<'ctx>) -> Self {
         Self(Var { id, ty: T::TYPE }, PhantomData)
     }
 
-    pub fn into_unknown(self) -> Var {
+    pub fn into_unknown(self) -> Var<'ctx> {
         self.0
     }
 }
 
-impl BoolVar {
-    pub fn into_uint<const SIZE: u8>(self) -> UIntVar<SIZE>
+impl<'ctx> BoolVar<'ctx> {
+    pub fn into_uint<const SIZE: u8>(self) -> UIntVar<'ctx, SIZE>
     where
         Const<SIZE>: GreaterEqual<1>,
     {
         UIntVar::new(self.0.id)
     }
 
-    pub fn into_pointer(self) -> PointerVar {
+    pub fn into_pointer(self) -> PointerVar<'ctx> {
         PointerVar::new(self.0.id)
     }
 }
 
-impl<const SIZE: u8> UIntVar<SIZE> {
-    pub fn into_uint<const TARGET_SIZE: u8>(self) -> UIntVar<TARGET_SIZE>
+impl<'ctx, const SIZE: u8> UIntVar<'ctx, SIZE> {
+    pub fn into_uint<const TARGET_SIZE: u8>(self) -> UIntVar<'ctx, TARGET_SIZE>
     where
         Const<TARGET_SIZE>: GreaterEqual<SIZE>,
     {
         UIntVar::new(self.0.id)
     }
 
-    pub fn into_pointer(self) -> PointerVar {
+    pub fn into_pointer(self) -> PointerVar<'ctx> {
         PointerVar::new(self.0.id)
     }
 }
@@ -91,42 +103,42 @@ impl TypeTag for PointerType {
     const TYPE: Type = Type::Pointer;
 }
 
-pub trait AnyVar {
-    fn new(id: VarId) -> Self;
+pub trait AnyVar<'ctx> {
+    fn new(id: VarId<'ctx>) -> Self;
 
-    fn into_unknown(self) -> Var;
+    fn into_unknown(self) -> Var<'ctx>;
 
-    fn as_unknown(&self) -> &Var;
+    fn as_unknown(&self) -> &Var<'ctx>;
 
-    fn id(&self) -> VarId {
+    fn id(&self) -> VarId<'ctx> {
         self.as_unknown().id
     }
 }
 
-impl<T: TypeTag> AnyVar for TypedVar<T> {
-    fn new(id: VarId) -> Self {
+impl<'ctx, T: TypeTag> AnyVar<'ctx> for TypedVar<'ctx, T> {
+    fn new(id: VarId<'ctx>) -> Self {
         Self::new(id)
     }
 
-    fn into_unknown(self) -> Var {
+    fn into_unknown(self) -> Var<'ctx> {
         self.into_unknown()
     }
 
-    fn as_unknown(&self) -> &Var {
+    fn as_unknown(&self) -> &Var<'ctx> {
         &self.0
     }
 }
 
-pub trait UIntAnyVar: AnyVar {}
+pub trait UIntAnyVar<'ctx>: AnyVar<'ctx> {}
 
-impl<const SIZE: u8> UIntAnyVar for UIntVar<SIZE> {}
+impl<'ctx, const SIZE: u8> UIntAnyVar<'ctx> for UIntVar<'ctx, SIZE> {}
 
-pub trait IntAnyVar: AnyVar {}
+pub trait IntAnyVar<'ctx>: AnyVar<'ctx> {}
 
-impl<const SIZE: u8> IntAnyVar for IntVar<SIZE> {}
+impl<'ctx, const SIZE: u8> IntAnyVar<'ctx> for IntVar<'ctx, SIZE> {}
 
-pub trait BothIntAnyVar: AnyVar {}
+pub trait BothIntAnyVar<'ctx>: AnyVar<'ctx> {}
 
-impl<const SIZE: u8> BothIntAnyVar for UIntVar<SIZE> {}
+impl<'ctx, const SIZE: u8> BothIntAnyVar<'ctx> for UIntVar<'ctx, SIZE> {}
 
-impl<const SIZE: u8> BothIntAnyVar for IntVar<SIZE> {}
+impl<'ctx, const SIZE: u8> BothIntAnyVar<'ctx> for IntVar<'ctx, SIZE> {}
